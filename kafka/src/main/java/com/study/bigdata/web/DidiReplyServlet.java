@@ -38,7 +38,7 @@ public class DidiReplyServlet extends HttpServlet {
 	          out.println("<title>Successful Page</title>");  
 	          out.println("</head>");  
 	          out.println("<body>");  
-	          out.println("<h1>The Replay is sent successfully!!!</h1>");  
+	          out.println("<h1>The Reply is sent successfully!!!</h1>");  
 	          out.println("</body>");  
 	          out.println("</html>"); 
 		} catch (Exception e) {
