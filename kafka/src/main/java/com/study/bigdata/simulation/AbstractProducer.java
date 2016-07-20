@@ -48,20 +48,10 @@ public abstract class AbstractProducer {
 	protected abstract String getTopic();
 	
 	protected void initialize() throws Exception {
-		Properties props = new Properties();
-        
-        props.put("metadata.broker.list", "BTTETI01:9092,BTTETI02:9092,BTTETI03:9092");
-        props.put("serializer.class", "kafka.serializer.StringEncoder");
-        props.put("partitioner.class", "com.study.bigdata.simulation.DidiPartitioner");
-        props.put("request.required.acks", "1");
- 
-        ProducerConfig config = new ProducerConfig(props);
- 
-        producer = new Producer<String, String>(config);
+		producer= KafkaManager.getInstance().getProducer();
        
-        
         try {
-            conn=DBManager.getConn();
+            conn= DBManager.getConn();
         } catch(Exception e) {
         	throw new Exception("Initiate Connection failed. " + e);
         }
@@ -72,8 +62,6 @@ public abstract class AbstractProducer {
 	}
 	
 	protected void postSend() {
-		producer.close();
-		
 		if (conn != null) {
             try {
             	 DBManager.closeConn(conn);

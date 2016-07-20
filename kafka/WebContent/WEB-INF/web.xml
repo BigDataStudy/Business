@@ -19,6 +19,7 @@
         <servlet-name>DidiReplyServlet</servlet-name>  
         <url-pattern>/sendReply</url-pattern>  
     </servlet-mapping> 
+    <!-- 
     <servlet>  
         <servlet-name>DBManagerServlet</servlet-name>  
         <servlet-class>com.study.bigdata.web.LaunchDBManager</servlet-class>
@@ -33,5 +34,5 @@
       <res-ref-name>jdbc/didi</res-ref-name>
       <res-type>javax.sql.DataSource</res-type>
       <res-auth>Container</res-auth>
-  </resource-ref>
+  </resource-ref> -->
 </web-app> 
