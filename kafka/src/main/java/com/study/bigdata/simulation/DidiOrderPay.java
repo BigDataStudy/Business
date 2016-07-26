@@ -9,6 +9,34 @@ public class DidiOrderPay extends AbstractProducer {
 	
     public static void main(String[] args) throws InterruptedException {
       
+    	/**
+    	 * ===================testcase01=============================
+    	 * following code for test kafka send message
+    	 */
+    	
+    	int times = 100000;
+    	DidiOrderPay pay = new DidiOrderPay();
+    	try {
+    		pay.initialize();
+		} catch (Exception e1) {
+		}
+    	long l = System.currentTimeMillis();
+    	int success_time = 0;
+    	try {
+    		for ( int i=0;i<times;i++) {
+    			pay.doSend(pay.prepareMsg());
+    			success_time++;
+    		}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	System.out.println(String.format("time=%s, send=%s", (System.currentTimeMillis()-l)/1000, success_time));
+    	/**
+    	 * ===================testcase01=============================end
+    	 */
+    	
     }
 
     
