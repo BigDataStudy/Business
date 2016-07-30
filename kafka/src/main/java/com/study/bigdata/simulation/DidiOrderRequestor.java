@@ -1,6 +1,7 @@
 package com.study.bigdata.simulation;
 
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
+
+import com.study.bigdata.conn.DruidDataSourceManager;
 
 public class DidiOrderRequestor extends AbstractProducer {
 	
@@ -27,7 +30,9 @@ public class DidiOrderRequestor extends AbstractProducer {
     //97ebd0c6680f7c0535dbfdead6e51b4b	dd65fa250fca2833a3a8c16d2cf0457c	ed180d7daf639d936f1aeae4f7fb482f	4725c39a5e5f4c188d382da3910b3f3f	3e12208dd0be281c92a6ab57d9a6fb32	24	2016-01-01 13:37:23
 	@Override
 	protected Message prepareMsg() throws Exception {
+		Connection conn = null;
 		try {
+			conn = DruidDataSourceManager.getInstance().getConnection();
 			SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	        
 	        StringBuilder builder= new StringBuilder();
@@ -35,32 +40,30 @@ public class DidiOrderRequestor extends AbstractProducer {
 	        builder.append("NULL").append("\t");//driver_id
 	        
 	        //connect
-	        String passenger = getAvailablePassenger();
+	        String passenger = getAvailablePassenger(conn);
             
 	        builder.append(passenger).append("\t");//passenger_id
-	        builder.append(getDistrict()).append("\t");//start_district_hash
-	        builder.append(getDistrict()).append("\t");//dest_district_hash
+	        builder.append(getDistrict(conn)).append("\t");//start_district_hash
+	        builder.append(getDistrict(conn)).append("\t");//dest_district_hash
 	        
 	        builder.append("NULL").append("\t");
 	        Date date= new Date();
 	        builder.append(sdf.format(date));
 	        int ss= Calendar.getInstance().get(Calendar.SECOND);
-	        createOrder(builder.toString());
+	        createOrder(conn, builder.toString());
 	        
 	        return new Message(String.valueOf(ss), builder.toString());
-		} catch (Exception e) {
-			throw new Exception("Error occured when request. " + e);
+		} finally {
+			closeConn(conn);
 		}
 	}
 
 
-	private void createOrder(String string) throws Exception {
+	private void createOrder(Connection conn, String string) throws Exception {
 		String[] detail= string.split("\t");
-		java.sql.Connection conn= this.getConnection();
 		PreparedStatement ps = null;
 		
 		try {
-//			String sql = "INSERT INTO order_simulation(order_id,driver_id,passenger_id,start_district_hash,dest_district_hash,Price,Time) VALUES( ?, ?, ?, ?, ?, ?, ?) " ;
 			String sql = "INSERT INTO order_simulation VALUES( ?, ?, ?, ?, ?, ?, ?) " ;
             ps = conn.prepareStatement(sql);
             ps.setString(1, detail[0]);
@@ -73,67 +76,55 @@ public class DidiOrderRequestor extends AbstractProducer {
             ps.executeUpdate();
           
 		} catch (SQLException e) {
-			throw new Exception("Insert Error. " + e);
+			throw new Exception("create order Error. " + e);
 			
 		} finally {
-			try {
-				ps.close();
-			} catch (Exception e) {
-				
-			}
+			closePreparedStatement(ps);
 		}
 	}
 
 
-	private String getAvailablePassenger() throws Exception {
-		java.sql.Connection conn= this.getConnection();
+	private String getAvailablePassenger(Connection conn) throws Exception {
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			Random random = new Random();
 			int pid = random.nextInt(1289406) + 1;
 			ps = conn.prepareStatement("select * from passenger where id=" + pid);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			
 		    while (rs.next()) {
 		        return rs.getString(2);
 		    }
 		    rs.close();
-		    return getAvailablePassenger();
+		    return getAvailablePassenger(conn);
 		} catch (SQLException e) {
 			throw new Exception("Acquire passenger error. " + e);
 		} finally {
-			try {
-				ps.close();
-			} catch (Exception e) {
-				
-			}
+			closeResultSet(rs);
+			closePreparedStatement(ps);
 		}
-//		throw new Exception("No available passenger found!");
 	}
 	
-	private String getDistrict() throws Exception {
-		java.sql.Connection conn= this.getConnection();
+	private String getDistrict(Connection conn) throws Exception {
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			Random random = new Random();
 			int did = random.nextInt(65) + 1;
 			ps = conn.prepareStatement("select district_id from district where id=" + did);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 		    while (rs.next()) {
 		        return rs.getString(1);
 		    }
 		    rs.close();
-		    return getDistrict();
+		    return getDistrict(conn);
 		} catch (SQLException e) {
-			throw new Exception("Acquire passenger error. " + e);
+			throw new Exception("Acquire district error. " + e);
 		} finally {
-			try {
-				ps.close();
-			} catch (Exception e) {
-				
-			}
+			closeResultSet(rs);
+			closePreparedStatement(ps);
 		}
-//		throw new Exception("No available passenger found!");
 	}
 
 	@Override
@@ -141,16 +132,4 @@ public class DidiOrderRequestor extends AbstractProducer {
 		return "didi-order-topic";
 	}
 	
-	public static void main(String[] args) throws InterruptedException {
-		 
-	      DidiOrderRequestor requester = new DidiOrderRequestor();
-	      try {
-	    	  requester.initialize();
-	    	  requester.send();
-//			System.out.println(requester.getAvailablePassenger());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
-
 }

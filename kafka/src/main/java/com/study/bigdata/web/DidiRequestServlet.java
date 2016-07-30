@@ -9,9 +9,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.study.bigdata.simulation.DidiOrderRequestor;
 
 public class DidiRequestServlet extends HttpServlet { 
+	static Logger logger = Logger.getLogger(DidiRequestServlet.class.getName());
 	
     /**
 	 * 
@@ -40,7 +43,9 @@ public class DidiRequestServlet extends HttpServlet {
 	          out.println("<h1>The Request is sent successfully!!!</h1>");  
 	          out.println("</body>");  
 	          out.println("</html>"); 
+	          logger.info("request successfully");
 		} catch (Exception e) {
+			logger.error("fail to request", e);
 			  response.setContentType("text/html");  
 	          out.println("<html>");  
 	          out.println("<head>");  

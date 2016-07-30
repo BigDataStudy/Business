@@ -1,38 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="http://java.sun.com/xml/ns/j2ee"  
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
-    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"  
-    version="2.4">  
-    <servlet>  
-        <servlet-name>DidiRequestServlet</servlet-name>  
-        <servlet-class>com.study.bigdata.web.DidiRequestServlet</servlet-class>  
-    </servlet>  
-    <servlet-mapping>  
-        <servlet-name>DidiRequestServlet</servlet-name>  
-        <url-pattern>/sendRequest</url-pattern>  
-    </servlet-mapping> 
-    <servlet>  
-        <servlet-name>DidiReplyServlet</servlet-name>  
-        <servlet-class>com.study.bigdata.web.DidiReplyServlet</servlet-class>  
-    </servlet>  
-    <servlet-mapping>  
-        <servlet-name>DidiReplyServlet</servlet-name>  
-        <url-pattern>/sendReply</url-pattern>  
-    </servlet-mapping> 
-    <!-- 
-    <servlet>  
-        <servlet-name>DBManagerServlet</servlet-name>  
-        <servlet-class>com.study.bigdata.web.LaunchDBManager</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>  
-    <servlet-mapping>  
-        <servlet-name>DBManagerServlet</servlet-name>  
-        <url-pattern>/DBManager</url-pattern>  
-    </servlet-mapping>  
-    <resource-ref>
-      <description>DB Connection</description>
-      <res-ref-name>jdbc/didi</res-ref-name>
-      <res-type>javax.sql.DataSource</res-type>
-      <res-auth>Container</res-auth>
-  </resource-ref> -->
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+	version="2.4">
+	<servlet>
+		<servlet-name>DidiRequestServlet</servlet-name>
+		<servlet-class>com.study.bigdata.web.DidiRequestServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DidiRequestServlet</servlet-name>
+		<url-pattern>/sendRequest</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>DidiReplyServlet</servlet-name>
+		<servlet-class>com.study.bigdata.web.DidiReplyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DidiReplyServlet</servlet-name>
+		<url-pattern>/sendReply</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>DruidStatView</servlet-name>
+		<servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DruidStatView</servlet-name>
+		<url-pattern>/druid/*</url-pattern>
+	</servlet-mapping>
 </web-app> 

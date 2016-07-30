@@ -2,6 +2,7 @@
     <wb-module deploy-name="kafka">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
         <property name="context-root" value="kafka"/>
         <property name="java-output-path" value="/kafka/target/classes"/>
     </wb-module>

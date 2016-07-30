@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Random;
 
+import com.study.bigdata.conn.DruidDataSourceManager;
+
 public class DidiOrderReplyer extends AbstractProducer {
 
 	/*
@@ -23,68 +25,63 @@ public class DidiOrderReplyer extends AbstractProducer {
 	// 3e12208dd0be281c92a6ab57d9a6fb32 24 2016-01-01 13:37:23
 	@Override
 	protected Message prepareMsg() throws Exception {
-		Connection conn = this.getConnection();
+		Order order = tryUpdateReply();
+		return null != order ? buildMessage(order) : null;
+	}
+	
+	private Message buildMessage(Order order) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(order.getOrder_id()).append("\t");// order_id
+		builder.append(order.getDriver_id()).append("\t");// driver_id
+		builder.append(order.getPassenger_id()).append("\t");// passenger_id
+		builder.append(order.getStart_district_hash()).append("\t");// start_district_hash
+		builder.append(order.getDest_district_hash()).append("\t");// dest_district_hash
+
+		builder.append("37.5").append("\t");
+		builder.append(order.getTime());
+		int ss = Calendar.getInstance().get(Calendar.SECOND);
+		return new Message(String.valueOf(ss), builder.toString());
+	}
+	
+	private Order tryUpdateReply() throws Exception{
+		int result = 0;
+		
+		Order order=null;
+		Connection conn = DruidDataSourceManager.getInstance().getConnection();
+		conn.setAutoCommit(false);
+		conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+		
 		try {
-			conn.setAutoCommit(false);
-			conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-
-			Order order = getUnRepliedOrder(conn);
-			order.setDriver_id(getAvailableDriver());
-
-			StringBuilder builder = new StringBuilder();
-			builder.append(order.getOrder_id()).append("\t");// order_id
-			builder.append(order.getDriver_id()).append("\t");// driver_id
-			builder.append(order.getPassenger_id()).append("\t");// passenger_id
-			builder.append(order.getStart_district_hash()).append("\t");// start_district_hash
-			builder.append(order.getDest_district_hash()).append("\t");// dest_district_hash
-
-			builder.append("37.5").append("\t");
-			builder.append(order.getTime());
-			int ss = Calendar.getInstance().get(Calendar.SECOND);
-
-			updateOrder(order);
-
+			order = getUnRepliedOrder(conn);
+			order.setDriver_id(getAvailableDriver(conn));
+			
+			String sql = "update order_simulation set driver_id='" + order.getDriver_id() + "' where order_id='" + order.getOrder_id() +"'";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			result = ps.executeUpdate();
 			conn.commit();
-
-			return new Message(String.valueOf(ss), builder.toString());
 		} catch (Exception e) {
 			try {
 				conn.rollback();
 			} catch (SQLException e1) {
-				//
+				logger.error("failed to rollback when update order", e1);
 			}
-			throw new Exception("Error occured when reply. " + e);
-		}
-	}
-
-	private void updateOrder(Order order) throws Exception {
-		java.sql.Connection conn= this.getConnection();
-		PreparedStatement ps = null;
-		try {
-			String sql = "update order_simulation set driver_id='" + getAvailableDriver() + "' where order_id='" + order.getOrder_id() +"'";
-            ps = conn.prepareStatement(sql);
-            ps.executeUpdate();
-          
-		} catch (SQLException e) {
-			throw new Exception("Update Error. " + e);
-			
+			throw e;
 		} finally {
-			try {
-				ps.close();
-			} catch (Exception e) {
-				
-			}
+			closeConn(conn);
 		}
-
+		
+		return result == 1? order : null;
 	}
+	
 
-	private Order getUnRepliedOrder(Connection conn) throws Exception {
+	private Order getUnRepliedOrder(Connection conn ) throws Exception {
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
-			Order order = new Order();
 			ps = conn.prepareStatement("select order_id, driver_id, passenger_id, start_district_hash, dest_district_hash, Time from order_simulation where driver_id = 'NULL' limit 1 for update");
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				Order order = new Order();
 				order.setOrder_id(rs.getString("order_id"));
 				order.setPassenger_id(rs.getString("passenger_id"));
 				order.setStart_district_hash(rs.getString("start_district_hash"));
@@ -92,61 +89,35 @@ public class DidiOrderReplyer extends AbstractProducer {
 				order.setTime(rs.getString("Time"));
 				return order;
 			}
-			rs.close();
 			return getUnRepliedOrder(conn);
-		} catch (SQLException e) {
-			throw new Exception("Acquire passenger error. " + e);
 		} finally {
-			try {
-				ps.close();
-			} catch (Exception e) {
-
-			}
+			closeResultSet(rs);
+			closePreparedStatement(ps);
 		}
 	}
 
-	private String getAvailableDriver() throws Exception {
-		java.sql.Connection conn = this.getConnection();
+	private String getAvailableDriver(Connection conn) throws Exception {
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			Random random = new Random();
 			int pid = random.nextInt(91390) + 7422;
 			ps = conn
 					.prepareStatement("select * from driver where id = " + pid);
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-//				System.out.println("id : " + rs.getInt(1) + " driver id : "
-//								+ rs.getString(2) + " driver name : "
-//								+ rs.getString(3));
+			rs = ps.executeQuery();
+			if (rs.next()) {
 				return rs.getString(2);
 			}
-			rs.close();
-			return getAvailableDriver();
-		} catch (SQLException e) {
-			throw new Exception("Acquire passenger error. " + e);
+			return getAvailableDriver(conn);
 		} finally {
-			try {
-				ps.close();
-			} catch (Exception e) {
-
-			}
+			closeResultSet(rs);
+			closePreparedStatement(ps);
 		}
 	}
 
 	@Override
 	protected String getTopic() {
 		return "didi-order-topic";
-	}
-
-	public static void main(String[] args) throws InterruptedException {
-		DidiOrderReplyer replyer = new DidiOrderReplyer();
-		try {
-			replyer.initialize();
-			replyer.send();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 }

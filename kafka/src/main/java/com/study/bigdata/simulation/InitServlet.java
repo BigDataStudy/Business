@@ -35,7 +35,6 @@ public class InitServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		System.out.println("Data source connection is going to init!");
-		DBManager.getConn();
 		System.out.println("Kafka connection is going to init!");
 		KafkaManager.getInstance();
 	}

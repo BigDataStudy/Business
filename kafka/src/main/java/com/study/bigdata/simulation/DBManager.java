@@ -1,4 +1,4 @@
-package com.study.bigdata.simulation;
+/*package com.study.bigdata.simulation;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -8,13 +8,14 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.BasicDataSourceFactory;
 
-/**
+*//**
  * 
  * 
- */
+ *//*
 public class DBManager {
 	private static final String configFile = "dbcp.properties";
 	private static DataSource dataSource;
+	
 	static {
 		Properties dbProperties = new Properties();
 		try {
@@ -32,33 +33,25 @@ public class DBManager {
 		System.out.println("Data source connection initiated!");
 	}
 
-	/**
+	*//**
 	 * 
 	 * @see {@link DBManager#closeConn(Connection)}
 	 * @return
-	 */
-	public static final Connection getConn() {
-		Connection conn = null;
-		try {
-			conn = dataSource.getConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return conn;
+	 * @throws SQLException 
+	 *//*
+	public static final Connection getConn() throws SQLException {
+		return dataSource.getConnection();
 	}
 
-	/**
+	*//**
 	 * 
 	 * @param conn
-	 */
-	public static void closeConn(Connection conn) {
-		try {
-			if (conn != null && !conn.isClosed()) {
-				conn.setAutoCommit(true);
-				conn.close();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+	 * @throws SQLException 
+	 *//*
+	public static void closeConn(Connection conn) throws SQLException {
+		if (conn != null && !conn.isClosed()) {
+			conn.setAutoCommit(true);
+			conn.close();
 		}
 	}
-}
+}*/

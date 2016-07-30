@@ -9,10 +9,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
+import com.study.bigdata.simulation.AbstractProducer;
 import com.study.bigdata.simulation.DidiOrderReplyer;
 import com.study.bigdata.simulation.DidiOrderRequestor;
 
 public class DidiReplyServlet extends HttpServlet { 
+	static Logger logger = Logger.getLogger(DidiReplyServlet.class.getName());
 	
     /**
 	 * 
@@ -41,7 +45,9 @@ public class DidiReplyServlet extends HttpServlet {
 	          out.println("<h1>The Reply is sent successfully!!!</h1>");  
 	          out.println("</body>");  
 	          out.println("</html>"); 
+	          logger.info("reply successfully");
 		} catch (Exception e) {
+			logger.error("fail to reply", e);
 			  response.setContentType("text/html");  
 	          out.println("<html>");  
 	          out.println("<head>");  
@@ -51,7 +57,7 @@ public class DidiReplyServlet extends HttpServlet {
 	          out.println("<h1>The Request Failed to sent</h1>");  
 	          out.println("</body>");  
 	          out.println("</html>"); 
-			e.printStackTrace();
+			  
 		}
 	      
 	}

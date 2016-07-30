@@ -1,76 +1,67 @@
 package com.study.bigdata.simulation;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Properties;
-import java.util.Random;
 
-import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
+
+import org.apache.log4j.Logger;
 
 public abstract class AbstractProducer {
-	private Producer<String, String> producer;
 	
-	private Connection conn;
+	static Logger logger = Logger.getLogger(AbstractProducer.class.getName());
 	
 	public AbstractProducer() {
-		 
 	}
 	
-	public void send() {
-		try {
-			initialize();
-		} catch(Exception e) {
-			System.out.println("Send...error in initialize db and kafka " + e);
+	public void send() throws Exception {
+		Message msg = null;
+		msg= prepareMsg();
+		
+		if ( null != msg ) {
+			doSendMassageToKafka(msg);
 		}
 		
-		try {
-			Message msgList= prepareMsg();
-			doSend(msgList);
-//			Thread.sleep(new Random().nextInt(100));
-		} catch (Exception e) {
-			System.out.println("Send...error " + e);
-		}
-		
-		postSend();
 	}
 
-	protected void doSend(Message msgList) {
-		KeyedMessage<String, String> keyedMsg= 
-				new KeyedMessage<String, String>(getTopic(), msgList.getKey(), msgList.getBody());
-        producer.send(keyedMsg);   
+	protected void doSendMassageToKafka(Message msgList) {
+		KeyedMessage<String, String> keyedMsg= new KeyedMessage<String, String>(getTopic(), msgList.getKey(), msgList.getBody());
+		KafkaManager.getInstance().getProducer().send(keyedMsg);   
 	}
 	
 	protected abstract Message prepareMsg() throws Exception;
 	
 	protected abstract String getTopic();
 	
-	protected void initialize() throws Exception {
-		producer= KafkaManager.getInstance().getProducer();
-       
-        try {
-            conn= DBManager.getConn();
-        } catch(Exception e) {
-        	throw new Exception("Initiate Connection failed. " + e);
-        }
+	protected void  closePreparedStatement(PreparedStatement ps) {
+		if (null != ps) {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
-	protected Connection getConnection() {
-		return this.conn;
+	protected void  closeConn(Connection conn) {
+		if (null != conn) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
-	protected void postSend() {
-		if (conn != null) {
-            try {
-            	 DBManager.closeConn(conn);
-            	
-            	//conn.close();
-            } catch (Exception e) {
-                //do nothing
-            }
-        }
+	protected void  closeResultSet(ResultSet rs) {
+		if (null != rs) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
-	
 }
