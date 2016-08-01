@@ -1,4 +1,4 @@
-package com.study.bigdata.activemq;
+package com.utils.activemq;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;

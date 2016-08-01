@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.study.bigdata.db.DruidDataSourceManager;
+import com.utils.db.DruidDataSourceManager;
 
 /**
  * Servlet implementation class LaunchDBManager

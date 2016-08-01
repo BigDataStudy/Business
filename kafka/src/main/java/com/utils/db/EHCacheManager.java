@@ -1,4 +1,4 @@
-package com.study.bigdata.db;
+package com.utils.db;
 
 
 import net.sf.ehcache.Cache;

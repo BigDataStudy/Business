@@ -14,10 +14,9 @@ import java.util.UUID;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 
-import com.redis.util.JedisUtil;
-import com.study.bigdata.activemq.ActiveMQManager;
-import com.study.bigdata.db.DruidDataSourceManager;
-import com.study.bigdata.db.EHCacheManager;
+import com.utils.db.DruidDataSourceManager;
+import com.utils.db.EHCacheManager;
+import com.utils.redis.JedisUtil;
 
 public class DidiOrderRequestor extends AbstractProducer {
 	

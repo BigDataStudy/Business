@@ -1,4 +1,4 @@
-package com.redis.util;
+package com.utils.redis;
 
 
 public class TestRedisQuene {

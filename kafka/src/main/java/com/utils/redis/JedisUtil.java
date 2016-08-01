@@ -1,4 +1,4 @@
-package com.redis.util;
+package com.utils.redis;
 
 import java.util.List;
 import java.util.Map;
