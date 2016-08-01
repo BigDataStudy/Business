@@ -1,4 +1,4 @@
-package com.study.bigdata.conn;
+package com.study.bigdata.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;

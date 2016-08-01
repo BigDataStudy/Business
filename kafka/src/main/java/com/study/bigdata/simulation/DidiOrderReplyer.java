@@ -7,7 +7,14 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Random;
 
-import com.study.bigdata.conn.DruidDataSourceManager;
+import javax.jms.JMSException;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
+
+import com.study.bigdata.activemq.ActiveMQManager;
+import com.study.bigdata.db.DruidDataSourceManager;
+import com.study.bigdata.db.EHCacheManager;
 
 public class DidiOrderReplyer extends AbstractProducer {
 
@@ -51,8 +58,11 @@ public class DidiOrderReplyer extends AbstractProducer {
 		conn.setAutoCommit(false);
 		conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		
+		order = getUnRepliedOrder2();
+		
 		try {
-			order = getUnRepliedOrder(conn);
+			//order = getUnRepliedOrder(conn);
+			
 			order.setDriver_id(getAvailableDriver(conn));
 			
 			String sql = "update order_simulation set driver_id='" + order.getDriver_id() + "' where order_id='" + order.getOrder_id() +"'";
@@ -95,6 +105,18 @@ public class DidiOrderReplyer extends AbstractProducer {
 			closePreparedStatement(ps);
 		}
 	}
+	
+	private Order getUnRepliedOrder2() throws Exception {
+		String message = ActiveMQManager.getInstance().ReceiveMessage();
+		if ( null != message ) {
+			Order order = new Order();
+			order.setOrder_id(message.split("\t")[0]);
+			return order;
+		}
+		throw new Exception("activeMQ hasn't order..");
+	}
+	
+	
 
 	private String getAvailableDriver(Connection conn) throws Exception {
 		PreparedStatement ps = null;
@@ -102,12 +124,21 @@ public class DidiOrderReplyer extends AbstractProducer {
 		try {
 			Random random = new Random();
 			int pid = random.nextInt(91390) + 7422;
-			ps = conn
-					.prepareStatement("select * from driver where id = " + pid);
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getString(2);
+			Cache cache= EHCacheManager.getInstance().getCache("driver_cache");
+			Element ele = cache.get(pid);
+			if ( null == ele ) {
+				ps = conn
+						.prepareStatement("select * from driver where id = " + pid);
+				rs = ps.executeQuery();
+				if (rs.next()) {
+					ele = new Element(pid, rs.getString(2));
+			    	cache.put(ele);
+					return rs.getString(2);
+				}
+			}else {
+				return ele.getObjectValue().toString();
 			}
+			
 			return getAvailableDriver(conn);
 		} finally {
 			closeResultSet(rs);

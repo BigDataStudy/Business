@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache updateCheck="false">
+
+	<diskStore path="java.io.tmpdir" />
+
+	<defaultCache maxEntriesLocalHeap="10000" eternal="false"
+		timeToIdleSeconds="300" timeToLiveSeconds="600" overflowToDisk="true"
+		maxEntriesLocalDisk="100000" memoryStoreEvictionPolicy="LRU"/>
+	
+	 
+	<cache name="driver_cache" maxEntriesLocalHeap="10000"
+		maxEntriesLocalDisk="100000" eternal="false" overflowToDisk="true"
+		timeToIdleSeconds="300" timeToLiveSeconds="600"
+		memoryStoreEvictionPolicy="LFU" />
+		
+	<cache name="district_cache" maxEntriesLocalHeap="10000"
+		maxEntriesLocalDisk="100000" eternal="false" overflowToDisk="true"
+		timeToIdleSeconds="300" timeToLiveSeconds="600"
+		memoryStoreEvictionPolicy="LFU" />
+	
+	<cache name="passenger_cache" maxEntriesLocalHeap="10000"
+		maxEntriesLocalDisk="100000" eternal="false" overflowToDisk="true"
+		timeToIdleSeconds="300" timeToLiveSeconds="600"
+		memoryStoreEvictionPolicy="LFU" />
+	
+
+</ehcache>

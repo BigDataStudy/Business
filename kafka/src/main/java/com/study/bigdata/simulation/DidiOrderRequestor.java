@@ -11,7 +11,12 @@ import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
-import com.study.bigdata.conn.DruidDataSourceManager;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
+
+import com.study.bigdata.activemq.ActiveMQManager;
+import com.study.bigdata.db.DruidDataSourceManager;
+import com.study.bigdata.db.EHCacheManager;
 
 public class DidiOrderRequestor extends AbstractProducer {
 	
@@ -51,7 +56,7 @@ public class DidiOrderRequestor extends AbstractProducer {
 	        builder.append(sdf.format(date));
 	        int ss= Calendar.getInstance().get(Calendar.SECOND);
 	        createOrder(conn, builder.toString());
-	        
+	        ActiveMQManager.getInstance().sendMessage(builder.toString());
 	        return new Message(String.valueOf(ss), builder.toString());
 		} finally {
 			closeConn(conn);
@@ -90,13 +95,22 @@ public class DidiOrderRequestor extends AbstractProducer {
 		try {
 			Random random = new Random();
 			int pid = random.nextInt(1289406) + 1;
-			ps = conn.prepareStatement("select * from passenger where id=" + pid);
-			rs = ps.executeQuery();
+			Cache cache= EHCacheManager.getInstance().getCache("passenger_cache");
+			Element ele = cache.get(pid);
+			if ( null == ele ) {
+				ps = conn.prepareStatement("select * from passenger where id=" + pid);
+				rs = ps.executeQuery();
+				
+			    while (rs.next()) {
+			    	ele = new Element(pid, rs.getString(2));
+			    	cache.put(ele);
+			        return rs.getString(2);
+			    }
+			    rs.close();
+			} else {
+				return ele.getObjectValue().toString();
+			}
 			
-		    while (rs.next()) {
-		        return rs.getString(2);
-		    }
-		    rs.close();
 		    return getAvailablePassenger(conn);
 		} catch (SQLException e) {
 			throw new Exception("Acquire passenger error. " + e);
@@ -112,12 +126,21 @@ public class DidiOrderRequestor extends AbstractProducer {
 		try {
 			Random random = new Random();
 			int did = random.nextInt(65) + 1;
-			ps = conn.prepareStatement("select district_id from district where id=" + did);
-			rs = ps.executeQuery();
-		    while (rs.next()) {
-		        return rs.getString(1);
-		    }
-		    rs.close();
+			Cache cache= EHCacheManager.getInstance().getCache("district_cache");
+			Element ele = cache.get(did);
+			if ( null == ele ) {
+				ps = conn.prepareStatement("select district_id from district where id=" + did);
+				rs = ps.executeQuery();
+			    while (rs.next()) {
+			    	ele = new Element(did, rs.getString(1));
+			    	cache.put(ele);
+			        return rs.getString(1);
+			    }
+			    rs.close();
+			} else {
+				return ele.getObjectValue().toString();
+			}
+			
 		    return getDistrict(conn);
 		} catch (SQLException e) {
 			throw new Exception("Acquire district error. " + e);
