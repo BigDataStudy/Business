@@ -36,7 +36,7 @@ public class DidiReplyServlet extends HttpServlet {
 	      PrintWriter out = response.getWriter(); 
 	      try {
 	    	  reply.send();
-	    	  response.setContentType("text/html");  
+    		  response.setContentType("text/html");  
 	          out.println("<html>");  
 	          out.println("<head>");  
 	          out.println("<title>Successful Page</title>");  
@@ -46,6 +46,7 @@ public class DidiReplyServlet extends HttpServlet {
 	          out.println("</body>");  
 	          out.println("</html>"); 
 	          logger.info("reply successfully");
+	    	  
 		} catch (Exception e) {
 			logger.error("fail to reply", e);
 			  response.setContentType("text/html");  
@@ -54,7 +55,7 @@ public class DidiReplyServlet extends HttpServlet {
 	          out.println("<title>Fail Page</title>");  
 	          out.println("</head>");  
 	          out.println("<body>");  
-	          out.println("<h1>The Request Failed to sent</h1>");  
+	          out.println("<h1>The Reply Failed to sent</h1>");  
 	          out.println("</body>");  
 	          out.println("</html>"); 
 			  

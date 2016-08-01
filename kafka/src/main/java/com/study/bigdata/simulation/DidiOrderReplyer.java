@@ -12,6 +12,7 @@ import javax.jms.JMSException;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 
+import com.redis.util.JedisUtil;
 import com.study.bigdata.activemq.ActiveMQManager;
 import com.study.bigdata.db.DruidDataSourceManager;
 import com.study.bigdata.db.EHCacheManager;
@@ -58,10 +59,12 @@ public class DidiOrderReplyer extends AbstractProducer {
 		conn.setAutoCommit(false);
 		conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		
-		order = getUnRepliedOrder2();
+		//order = getUnRepliedOrder_DBImpl(conn);
+		//order = getUnRepliedOrder_activeMQImpl();
+		order = getUnRepliedOrder_redisImpl();
 		
 		try {
-			//order = getUnRepliedOrder(conn);
+			
 			
 			order.setDriver_id(getAvailableDriver(conn));
 			
@@ -84,7 +87,7 @@ public class DidiOrderReplyer extends AbstractProducer {
 	}
 	
 
-	private Order getUnRepliedOrder(Connection conn ) throws Exception {
+	private Order getUnRepliedOrder_DBImpl(Connection conn ) throws Exception {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
@@ -99,21 +102,31 @@ public class DidiOrderReplyer extends AbstractProducer {
 				order.setTime(rs.getString("Time"));
 				return order;
 			}
-			return getUnRepliedOrder(conn);
+			return getUnRepliedOrder_DBImpl(conn);
 		} finally {
 			closeResultSet(rs);
 			closePreparedStatement(ps);
 		}
 	}
 	
-	private Order getUnRepliedOrder2() throws Exception {
+	private Order getUnRepliedOrder_activeMQImpl() throws Exception {
 		String message = ActiveMQManager.getInstance().ReceiveMessage();
 		if ( null != message ) {
 			Order order = new Order();
-			order.setOrder_id(message.split("\t")[0]);
+			order.setOrder_id(message);
 			return order;
 		}
-		throw new Exception("activeMQ hasn't order..");
+		throw new Exception("activeMQ order queue is empty...");
+	}
+	
+	private Order getUnRepliedOrder_redisImpl() throws Exception {
+		String message = JedisUtil.rpop("didi-order");
+		if ( null != message ) {
+			Order order = new Order();
+			order.setOrder_id(message);
+			return order;
+		}
+		throw new Exception("redis order queue is empty...");
 	}
 	
 	

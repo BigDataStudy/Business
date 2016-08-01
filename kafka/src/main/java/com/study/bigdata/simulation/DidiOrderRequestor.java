@@ -14,6 +14,7 @@ import java.util.UUID;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 
+import com.redis.util.JedisUtil;
 import com.study.bigdata.activemq.ActiveMQManager;
 import com.study.bigdata.db.DruidDataSourceManager;
 import com.study.bigdata.db.EHCacheManager;
@@ -41,7 +42,8 @@ public class DidiOrderRequestor extends AbstractProducer {
 			SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	        
 	        StringBuilder builder= new StringBuilder();
-	        builder.append(UUID.randomUUID().toString().replace("-", "")).append("\t");//order_id
+	        String order_id = UUID.randomUUID().toString().replace("-", "");
+	        builder.append(order_id).append("\t");//order_id
 	        builder.append("NULL").append("\t");//driver_id
 	        
 	        //connect
@@ -56,7 +58,10 @@ public class DidiOrderRequestor extends AbstractProducer {
 	        builder.append(sdf.format(date));
 	        int ss= Calendar.getInstance().get(Calendar.SECOND);
 	        createOrder(conn, builder.toString());
-	        ActiveMQManager.getInstance().sendMessage(builder.toString());
+	        
+	        //ActiveMQManager.getInstance().sendMessage(order_id);
+	        JedisUtil.lpush("didi-order", order_id);
+	        
 	        return new Message(String.valueOf(ss), builder.toString());
 		} finally {
 			closeConn(conn);
