@@ -35,33 +35,4 @@ public abstract class AbstractProducer {
 	
 	protected abstract String getTopic();
 	
-	protected void  closePreparedStatement(PreparedStatement ps) {
-		if (null != ps) {
-			try {
-				ps.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	protected void  closeConn(Connection conn) {
-		if (null != conn) {
-			try {
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	protected void  closeResultSet(ResultSet rs) {
-		if (null != rs) {
-			try {
-				rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }

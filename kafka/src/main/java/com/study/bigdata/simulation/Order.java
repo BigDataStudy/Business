@@ -16,9 +16,32 @@ public class Order {
 	private String passenger_id;
 	private String start_district_hash;
 	private String dest_district_hash;
-	private Double price;
+	private Double price=new Double(0);
 	private String time;
 	
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append(order_id).append("\t");
+		sb.append(driver_id).append("\t");
+		sb.append(passenger_id).append("\t");
+		sb.append(start_district_hash).append("\t");
+		sb.append(dest_district_hash).append("\t");
+		sb.append(price.toString()).append("\t");
+		sb.append(time);
+		return sb.toString();
+	}
+	
+	public void buildFromString(String str) {
+		String[] a = str.split("\t");
+		order_id = a[0];
+		driver_id = a[1];
+		passenger_id = a[2];
+		start_district_hash = a[3];
+		dest_district_hash = a[4];
+		price = Double.valueOf(a[5]);
+		time = a[6];
+	}
 	
 	public String getOrder_id() {
 		return order_id;

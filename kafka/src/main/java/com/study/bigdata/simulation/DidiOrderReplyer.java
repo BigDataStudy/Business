@@ -1,18 +1,12 @@
 package com.study.bigdata.simulation;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.Random;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.Element;
-
+import com.study.bigdata.simulation.dao.SimulationDao;
 import com.utils.activemq.ActiveMQManager;
 import com.utils.db.DruidDataSourceManager;
-import com.utils.db.EHCacheManager;
 import com.utils.redis.JedisUtil;
 
 public class DidiOrderReplyer extends AbstractProducer {
@@ -31,25 +25,48 @@ public class DidiOrderReplyer extends AbstractProducer {
 	// 3e12208dd0be281c92a6ab57d9a6fb32 24 2016-01-01 13:37:23
 	@Override
 	protected Message prepareMsg() throws Exception {
-		Order order = tryUpdateReply();
-		return null != order ? buildMessage(order) : null;
+		Order order = insertReply(getUnRepliedOrder_redisImpl());
+		return null != order ? new Message(String.valueOf(Calendar.getInstance().get(Calendar.SECOND)), order.toString()) : null;
 	}
 	
-	private Message buildMessage(Order order) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(order.getOrder_id()).append("\t");// order_id
-		builder.append(order.getDriver_id()).append("\t");// driver_id
-		builder.append(order.getPassenger_id()).append("\t");// passenger_id
-		builder.append(order.getStart_district_hash()).append("\t");// start_district_hash
-		builder.append(order.getDest_district_hash()).append("\t");// dest_district_hash
-
-		builder.append("37.5").append("\t");
-		builder.append(order.getTime());
-		int ss = Calendar.getInstance().get(Calendar.SECOND);
-		return new Message(String.valueOf(ss), builder.toString());
+	private Order updateReply(Order order) throws Exception{
+		SimulationDao dao = new SimulationDao();
+		
+		Connection conn = DruidDataSourceManager.getInstance().getConnection();
+		
+		try {
+			order.setDriver_id(dao.getAvailableDriver(conn));
+			int result = dao.updateOrder(conn, order);
+			if ( 1== result) {
+				return order;
+			} 
+			throw new Exception("failed to update order.");
+		} finally {
+			dao.closeConn(conn);
+		}
 	}
 	
-	private Order tryUpdateReply() throws Exception{
+	private Order insertReply(Order order) throws Exception{
+		SimulationDao dao = new SimulationDao();
+		
+		Connection conn = DruidDataSourceManager.getInstance().getConnection();
+		
+		try {
+			order.setDriver_id(dao.getAvailableDriver(conn));
+			order.setPrice(new Double(35));
+			int result = dao.insertOrder(conn, order);
+			if ( 1== result) {
+				return order;
+			} 
+			throw new Exception("failed to insert order.");
+		} finally {
+			dao.closeConn(conn);
+		}
+	}
+	
+	private Order updateReplyWithTransaction() throws Exception{
+		SimulationDao dao = new SimulationDao();
+		
 		int result = 0;
 		
 		Order order=null;
@@ -57,53 +74,26 @@ public class DidiOrderReplyer extends AbstractProducer {
 		conn.setAutoCommit(false);
 		conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		
-		//order = getUnRepliedOrder_DBImpl(conn);
-		//order = getUnRepliedOrder_activeMQImpl();
-		order = getUnRepliedOrder_redisImpl();
-		
 		try {
+			order = dao.getUnRepliedOrder(conn);
+			order.setDriver_id(dao.getAvailableDriver(conn));
 			
 			
-			order.setDriver_id(getAvailableDriver(conn));
-			
-			String sql = "update order_simulation set driver_id='" + order.getDriver_id() + "' where order_id='" + order.getOrder_id() +"'";
-			PreparedStatement ps = conn.prepareStatement(sql);
-			result = ps.executeUpdate();
-			conn.commit();
+			result = dao.updateOrder(conn, order);
+			if ( result == 1 ) {
+				conn.commit();
+				return order;
+			} 
+			throw new Exception("failed to update order.");
 		} catch (Exception e) {
 			try {
 				conn.rollback();
 			} catch (SQLException e1) {
-				logger.error("failed to rollback when update order", e1);
+				throw new Exception("failed to rollback when update order", e1);
 			}
-			throw e;
+			throw new Exception("failed to update order", e);
 		} finally {
-			closeConn(conn);
-		}
-		
-		return result == 1? order : null;
-	}
-	
-
-	private Order getUnRepliedOrder_DBImpl(Connection conn ) throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			ps = conn.prepareStatement("select order_id, driver_id, passenger_id, start_district_hash, dest_district_hash, Time from order_simulation where driver_id = 'NULL' limit 1 for update");
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				Order order = new Order();
-				order.setOrder_id(rs.getString("order_id"));
-				order.setPassenger_id(rs.getString("passenger_id"));
-				order.setStart_district_hash(rs.getString("start_district_hash"));
-				order.setDest_district_hash(rs.getString("dest_district_hash"));
-				order.setTime(rs.getString("Time"));
-				return order;
-			}
-			return getUnRepliedOrder_DBImpl(conn);
-		} finally {
-			closeResultSet(rs);
-			closePreparedStatement(ps);
+			dao.closeConn(conn);
 		}
 	}
 	
@@ -121,41 +111,12 @@ public class DidiOrderReplyer extends AbstractProducer {
 		String message = JedisUtil.rpop("didi-order");
 		if ( null != message ) {
 			Order order = new Order();
-			order.setOrder_id(message);
+			order.buildFromString(message);
 			return order;
 		}
 		throw new Exception("redis order queue is empty...");
 	}
-	
-	
 
-	private String getAvailableDriver(Connection conn) throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			Random random = new Random();
-			int pid = random.nextInt(91390) + 7422;
-			Cache cache= EHCacheManager.getInstance().getCache("driver_cache");
-			Element ele = cache.get(pid);
-			if ( null == ele ) {
-				ps = conn
-						.prepareStatement("select * from driver where id = " + pid);
-				rs = ps.executeQuery();
-				if (rs.next()) {
-					ele = new Element(pid, rs.getString(2));
-			    	cache.put(ele);
-					return rs.getString(2);
-				}
-			}else {
-				return ele.getObjectValue().toString();
-			}
-			
-			return getAvailableDriver(conn);
-		} finally {
-			closeResultSet(rs);
-			closePreparedStatement(ps);
-		}
-	}
 
 	@Override
 	protected String getTopic() {

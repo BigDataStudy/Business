@@ -20,12 +20,7 @@ public class JedisUtil {
 	private static JedisPool jedisPool;
 
 	static {
-		/*Configuration conf = Configuration.getInstance();
-		JEDIS_IP = conf.getString("jedis.ip", "9.115.65.48");
-		JEDIS_PORT = conf.getInt("jedis.port", 6379);
-		JEDIS_PASSWORD = conf.getString("jedis.password", null);*/
-		
-		JEDIS_IP = "9.115.65.48";
+		JEDIS_IP = "9.110.86.120";
 		JEDIS_PORT = 6379;
 		//JEDIS_PASSWORD = conf.getString("jedis.password", null);
 		
