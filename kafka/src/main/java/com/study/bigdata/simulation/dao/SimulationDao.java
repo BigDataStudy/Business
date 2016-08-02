@@ -39,7 +39,7 @@ public class SimulationDao {
 			String sql = "INSERT INTO " + des_table
 					+ " VALUES( ?, ?, ?, ?, ?, ?, ?) ";
 			ps = conn.prepareStatement(sql);
-			ps.setString(1, order.getDriver_id());
+			ps.setString(1, order.getOrder_id());
 			ps.setString(2, order.getDriver_id());
 			ps.setString(3, order.getPassenger_id());
 			ps.setString(4, order.getStart_district_hash());
