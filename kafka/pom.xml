@@ -5,6 +5,7 @@
 	<artifactId>kafka</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>kafka</name>
+	<packaging>war</packaging>
 	<properties>
     	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   	</properties>
@@ -75,8 +76,8 @@
 			<version>3.0.1</version>
 		</dependency>
 	</dependencies>
-	<packaging>war</packaging>
 	<build>
+		<finalName>kafka</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
