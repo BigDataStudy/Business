@@ -43,6 +43,7 @@ public class DidiReplyServlet extends HttpServlet {
 	          out.println("</head>");  
 	          out.println("<body>");  
 	          out.println("<h1>The Reply is sent successfully!!!</h1>");  
+	          out.println("<h1>Test hot deploy - Reply</h1>");
 	          out.println("</body>");  
 	          out.println("</html>"); 
 	          logger.info("reply successfully");

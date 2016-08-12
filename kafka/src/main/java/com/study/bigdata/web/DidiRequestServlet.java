@@ -40,6 +40,7 @@ public class DidiRequestServlet extends HttpServlet {
 			out.println("</head>");
 			out.println("<body>");
 			out.println("<h1>The Request is sent successfully!!!</h1>");
+			out.println("<h1>Test hot deploy - Request</h1>");
 			out.println("</body>");
 			out.println("</html>");
 			logger.info("request successfully");
