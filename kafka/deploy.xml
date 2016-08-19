@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="antBuildDoc.xsl"?>
-<project name="kafka" default="build_all" basedir=".">
+<project name="kafka" default="undeploy_deploy_loop" basedir=".">
 	<!-- property file="build.properties" / -->
 	<taskdef name="start" classname="org.apache.catalina.ant.StartTask" />
 	<taskdef name="stop" classname="org.apache.catalina.ant.StopTask" />
@@ -38,7 +38,7 @@
 			war="file:target/${project-name}.war"
 		/>
 	</target>
-	<target name="proper_deploy" >
+	<target name="undeploy_deploy_loop" >
 		<for list="${serverUrlList}" param="serverUrl">   
           <sequential>   
              <echo message="@{serverUrl}" /> 
