@@ -33,7 +33,7 @@
 			username="${tomcat-manager-username}"
 			password="${tomcat-manager-password}"
 			path="/${project-name}"
-			war="file:${project-name}/target/${project-name}.war"
+			war="file:target/${project-name}.war"
 		/>
 	</target>
 	<target name="build_all" depends="undeploy,deploy" />
