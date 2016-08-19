@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="antBuildDoc.xsl"?>
 <project name="kafka" default="build_all" basedir=".">
 	<!-- property file="build.properties" / -->
 	<taskdef name="start" classname="org.apache.catalina.ant.StartTask" />
 	<taskdef name="stop" classname="org.apache.catalina.ant.StopTask" />
 	<taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" />
 	<taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask" />
-
+	<taskdef resource="net/sf/antcontrib/antlib.xml" /> 
+	
 	<target name="stop" description="stop application in tomcat">
 		<stop url="${tomcat-manager-url}" username="${tomcat-manager-username}"
 			password="${tomcat-manager-password}" path="/${project-name}" />
@@ -36,6 +38,26 @@
 			war="file:target/${project-name}.war"
 		/>
 	</target>
-	<target name="build_all" depends="undeploy,deploy" />
+	<target name="proper_deploy" >
+		<for list="${serverUrlList}" param="serverUrl">   
+          <sequential>   
+             <echo message="@{serverUrl}" /> 
+             <undeploy 
+				failonerror="no"
+				url="@{serverUrl}"
+				username="${tomcat-manager-username}"
+				password="${tomcat-manager-password}"
+				path="/${project-name}"
+			/> 
+			<deploy 
+				url="@{serverUrl}"
+				username="${tomcat-manager-username}"
+				password="${tomcat-manager-password}"
+				path="/${project-name}"
+				war="file:target/${project-name}.war"
+			/>
+          </sequential>   
+     	</for>
+	</target>
 	
 </project>
