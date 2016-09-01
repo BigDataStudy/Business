@@ -1,7 +1,7 @@
 package com.study.bigdata.web.test;
 
-import junit.framework.Assert;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TestDataProvider {
