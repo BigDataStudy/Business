@@ -117,26 +117,36 @@
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
+						<configuration>  
+                            <destFile>  
+                                ${project.build.directory}/coverage-reports/jacoco.exec  
+                            </destFile>  
+                            <propertyName>surefireArgLine</propertyName>  
+                        </configuration> 
 					</execution>
 					<execution>
 						<id>default-report</id>
-						<phase>prepare-package</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>  
+                            <dataFile>${project.build.directory}/coverage-reports/jacoco.exec</dataFile>  
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>  
+                        </configuration>
 					</execution>
-					<execution>
+					<!-- <execution>
 						<id>default-check</id>
 						<goals>
 							<goal>check</goal>
 						</goals>
 						<configuration>
 							<rules>
-								<!-- implementation is needed only for Maven 2 -->
+								implementation is needed only for Maven 2
 								<rule implementation="org.jacoco.maven.RuleConfiguration">
 									<element>BUNDLE</element>
 									<limits>
-										<!-- implementation is needed only for Maven 2 -->
+										implementation is needed only for Maven 2
 										<limit implementation="org.jacoco.report.check.Limit">
 											<counter>COMPLEXITY</counter>
 											<value>COVEREDRATIO</value>
@@ -146,7 +156,7 @@
 								</rule>
 							</rules>
 						</configuration>
-					</execution>
+					</execution> -->
 				</executions>
 			</plugin>
 		</plugins>
