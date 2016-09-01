@@ -1,4 +1,4 @@
-package com.study.bigdata.web.test;
+package com.study.bigdata.web;
 
 import org.junit.Assert;
 import org.junit.Test;

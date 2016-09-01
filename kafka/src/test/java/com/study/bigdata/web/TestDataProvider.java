@@ -1,10 +1,10 @@
-package com.study.bigdata.web.test;
+package com.study.bigdata.web;
+
 
 import org.junit.Assert;
 import org.junit.Test;
 
-
-public class TestDidiOrder  { 
+public class TestDataProvider {
 	
 	@Test
 	public void testCreateOrder(){
@@ -29,6 +29,4 @@ public class TestDidiOrder  {
 		
 		Assert.assertTrue(true);
 	}
-	
-
-}  
+}

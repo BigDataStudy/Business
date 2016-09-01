@@ -1,9 +1,10 @@
-package com.study.bigdata.web.test;
+package com.study.bigdata.web;
+
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestDidiRequestServlet {
+public class TestDidiReplyServlet {
 
 	@Test
 	public void testDoGet(){
