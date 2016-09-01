@@ -24,4 +24,9 @@ public class MathUtilTest {
 	  public void test_max_0_1_0(){
 	      assertEquals(1, MathUtil.max(0, 1, 0));
 	  }
+	  
+	  @Test
+	  public void test_max_2_1_3(){
+	      assertEquals(3, MathUtil.max(2, 1, 3));
+	  }
 }
